@@ -10,7 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-// IMPORTED: Security test utilities to handle CSRF tokens
+// Security test utilities to handle CSRF tokens
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 @SpringBootTest
@@ -36,11 +36,33 @@ public class NotificationIntegrationTest {
             }
         """;
 
-        // EXECUTING: Passing a valid CSRF token along with the admin role context
         mockMvc.perform(MockMvcRequestBuilders.post("/api/test/notifications/lifecycle")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(testPayload)
-                .with(csrf())) // Generates and attaches a valid CSRF token to the request
+                .with(csrf())) 
+                .andExpect(MockMvcResultMatchers.status().isOk()); 
+    }
+
+    @Test
+    @WithMockUser(username = "doctor_test_user", roles = {"DOCTOR"}) 
+    @SuppressWarnings("null")
+    public void testQueueProximityReminderNotification() throws Exception {
+        // Payload configured with keys extracted from your controller request mappings
+        String queuePayload = """
+            {
+              "currentServingToken": 10,
+              "patientTargetToken": 12,
+              "phone": "+94763372067",
+              "appointmentId": 121,
+              "patientId": 455
+            }
+        """;
+
+        // FIXED: Pointing directly to /queue-step as configured in your controller
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/test/notifications/queue-step")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(queuePayload)
+                .with(csrf())) 
                 .andExpect(MockMvcResultMatchers.status().isOk()); 
     }
 }
